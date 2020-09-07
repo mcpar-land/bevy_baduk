@@ -7,6 +7,8 @@ mod error;
 mod game;
 mod piece;
 mod pos;
+mod ui_board;
+mod ui_piece;
 
 #[cfg(test)]
 mod test {
@@ -22,21 +24,58 @@ use game::Game;
 use piece::PieceColor;
 use systems::*;
 
-#[derive(Bundle)]
-pub struct ButtonValue {
-	pos: (u8, u8),
+pub struct PosValue((u8, u8));
+
+pub struct GlobalHover;
+pub struct GlobalBoard;
+
+pub struct GlobalEntities {
+	pub board: Entity,
+	pub hover: Entity,
 }
 
-pub struct BoardEntity(pub Entity);
+impl std::default::Default for GlobalEntities {
+	fn default() -> Self {
+		Self {
+			board: Entity::new(),
+			hover: Entity::new(),
+		}
+	}
+}
 
 pub struct MaterialHandles {
-	board: Handle<ColorMaterial>,
-	piece_b: Handle<ColorMaterial>,
-	piece_b_alpha: Handle<ColorMaterial>,
-	piece_w: Handle<ColorMaterial>,
-	piece_w_alpha: Handle<ColorMaterial>,
-	red: Handle<ColorMaterial>,
-	transparent: Handle<ColorMaterial>,
+	pub board: Handle<ColorMaterial>,
+	pub piece_b: Handle<ColorMaterial>,
+	pub piece_b_alpha: Handle<ColorMaterial>,
+	pub piece_w: Handle<ColorMaterial>,
+	pub piece_w_alpha: Handle<ColorMaterial>,
+	pub red: Handle<ColorMaterial>,
+	pub transparent: Handle<ColorMaterial>,
+}
+
+impl MaterialHandles {
+	pub fn piece_mat(
+		&self,
+		color: PieceColor,
+		alpha: bool,
+	) -> Handle<ColorMaterial> {
+		match color {
+			PieceColor::Black => {
+				if alpha {
+					self.piece_b_alpha
+				} else {
+					self.piece_b
+				}
+			}
+			PieceColor::White => {
+				if alpha {
+					self.piece_w_alpha
+				} else {
+					self.piece_w
+				}
+			}
+		}
+	}
 }
 
 impl FromResources for MaterialHandles {
@@ -75,14 +114,15 @@ impl FromResources for MaterialHandles {
 fn setup(
 	mut commands: Commands,
 	mat_handles: Res<MaterialHandles>,
-	board_entity: Res<BoardEntity>,
+	global_entities: Res<GlobalEntities>,
 ) {
 	commands
 		.spawn(UiCameraComponents::default())
 		.spawn_as_entity(
-			board_entity.0,
+			global_entities.board,
 			NodeComponents {
 				style: Style {
+					display: Display::Flex,
 					size: Size::new(Val::Px(441.0), Val::Px(441.0)),
 					position: Rect {
 						bottom: Val::Px(0.0),
@@ -92,10 +132,23 @@ fn setup(
 					position_type: PositionType::Absolute,
 					..Default::default()
 				},
+				draw: Draw {
+					is_visible: true,
+					..Default::default()
+				},
 				material: mat_handles.board,
 				..Default::default()
 			},
 		)
+		.with(GlobalBoard)
+		.with_children(|parent| {
+			parent
+				.spawn_as_entity(
+					global_entities.hover,
+					crate::ui_piece::ui_piece(mat_handles.piece_b, (0, 0), true),
+				)
+				.with(GlobalHover);
+		})
 		.with_children(|parent| {
 			for i in 0..19 {
 				for j in 0..19 {
@@ -117,12 +170,12 @@ fn setup(
 							},
 							..Default::default()
 						})
-						.with(ButtonValue {
-							pos: (j as u8, i as u8),
-						});
+						.with(PosValue((i as u8, j as u8)));
 				}
 			}
 		});
+
+	// .spawn_as_entity(global_entities.hover, NodeComponents {});
 }
 
 fn main() {
@@ -137,7 +190,7 @@ fn main() {
 		.add_event::<BoardEvent>()
 		.init_resource::<MaterialHandles>()
 		.add_resource(Game::new(PieceColor::White))
-		.add_resource(BoardEntity(Entity::new()))
+		.add_resource(GlobalEntities::default())
 		.add_resource(BoardEventResource(EventReader::default()))
 		.add_resource(MostRecentButtonResource::default())
 		.add_startup_system(setup.system())

@@ -21,7 +21,7 @@ impl Game {
 		}
 	}
 
-	pub fn do_move(&mut self, m: PlacedPiece) -> Result<PlacedPieceRef> {
+	pub fn do_move(&mut self, m: PlacedPiece) -> Result<MoveResult> {
 		if self.current_turn() != m.piece.color {
 			return Err(BadukError::InvalidMove {
 				source: InvalidMoveError::NotYourTurn {

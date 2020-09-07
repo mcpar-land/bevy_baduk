@@ -42,6 +42,8 @@ pub fn pos_in_bounds(pos: (u8, u8)) -> bool {
 	pos.0 <= 18 && pos.1 <= 18
 }
 
+pub type MoveResult<'a> = (PlacedPieceRef<'a>, HashSet<(u8, u8)>);
+
 #[derive(Clone)]
 pub struct Board {
 	display_board: [[Option<Piece>; 19]; 19],
@@ -185,7 +187,7 @@ impl Board {
 		Ok(())
 	}
 
-	pub fn do_move(&mut self, m: PlacedPiece) -> Result<PlacedPieceRef> {
+	pub fn do_move(&mut self, m: PlacedPiece) -> Result<MoveResult> {
 		self.valid_move(m)?;
 		self.set(m);
 
@@ -193,17 +195,19 @@ impl Board {
 			.adjacents(m.pos)
 			.map(|m| m.piece().map(|p| PlacedPiece::from(p)));
 
+		let mut removed_positions: HashSet<(u8, u8)> = HashSet::new();
+
 		for adj in adjacents.iter() {
 			if let Some(pr) = adj {
 				if pr.piece.color != m.piece.color {
 					if self.liberties_shape(pr.pos).len() == 0 {
-						self.remove_shape(pr.pos);
+						removed_positions.extend(self.remove_shape(pr.pos));
 					}
 				}
 			}
 		}
 
-		Ok(self.get(m.pos).unwrap())
+		Ok((self.get(m.pos).unwrap(), removed_positions))
 	}
 
 	pub fn do_moves(&mut self, moves: Vec<PlacedPiece>) -> Result<()> {
@@ -250,6 +254,21 @@ impl Board {
 			}
 		}
 		count
+	}
+
+	pub fn all_pieces(&self) -> Vec<PlacedPieceRef> {
+		let mut pieces: Vec<PlacedPieceRef> = vec![];
+		for (i, s) in self.display_board.iter().enumerate() {
+			for (j, p) in s.into_iter().enumerate() {
+				if let Some(piece) = p {
+					pieces.push(PlacedPieceRef {
+						piece,
+						pos: (i as u8, j as u8),
+					});
+				}
+			}
+		}
+		pieces
 	}
 }
 
