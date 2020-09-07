@@ -1,14 +1,6 @@
-use crate::{
-	adjacency::*,
-	error::*,
-	piece::*,
-	pos::Pos,
-};
+use crate::{adjacency::*, error::*, piece::*, pos::Pos};
 use colored::Colorize;
-use std::{
-	collections::HashSet,
-	fmt,
-};
+use std::{collections::HashSet, fmt};
 
 const DOT_POSITIONS: [(u8, u8); 9] = [
 	(3, 3),
@@ -47,14 +39,15 @@ pub type MoveResult<'a> = (PlacedPieceRef<'a>, HashSet<(u8, u8)>);
 #[derive(Clone)]
 pub struct Board {
 	display_board: [[Option<Piece>; 19]; 19],
-	ko: Option<(u8, u8)>,
+	// for checking Ko
+	ko_board: [[Option<Piece>; 19]; 19],
 }
 
 impl Board {
 	pub fn new() -> Self {
 		Self {
 			display_board: [[None; 19]; 19],
-			ko: None,
+			ko_board: [[None; 19]; 19],
 		}
 	}
 
@@ -205,6 +198,12 @@ impl Board {
 			}
 		}
 
+		if future_board.display_board == self.ko_board {
+			return Err(BadukError::InvalidMove {
+				source: InvalidMoveError::Ko,
+			});
+		}
+
 		let future_libs = future_board.liberties_shape(m.pos);
 		// if it would result in a self capture
 		if future_libs.len() == 0 {
@@ -218,6 +217,7 @@ impl Board {
 
 	pub fn do_move(&mut self, m: PlacedPiece) -> Result<MoveResult> {
 		self.valid_move(m)?;
+		self.ko_board = self.display_board;
 		self.set(m);
 
 		let adjacents = self

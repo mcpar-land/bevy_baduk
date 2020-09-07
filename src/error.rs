@@ -1,11 +1,5 @@
-use crate::{
-	piece::*,
-	pos::*,
-};
-use snafu::{
-	ResultExt,
-	Snafu,
-};
+use crate::{piece::*, pos::*};
+use snafu::{ResultExt, Snafu};
 
 #[derive(Debug, Snafu)]
 pub enum BadukError {
