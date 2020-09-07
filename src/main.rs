@@ -181,6 +181,7 @@ fn setup(
 fn main() {
 	App::build()
 		.add_resource(WindowDescriptor {
+			title: "Go in Bevy!".to_string(),
 			width: 441,
 			height: 441,
 			resizable: false,

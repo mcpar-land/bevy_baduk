@@ -1,11 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{
-	game::Game,
-	ui_piece::*,
-	GlobalBoard,
-	MaterialHandles,
-};
+use crate::{game::Game, ui_piece::*, GlobalBoard, MaterialHandles};
 
 pub fn redraw_board(
 	commands: &mut Commands,
@@ -26,5 +21,5 @@ pub fn redraw_board(
 			true,
 		);
 	}
-	println!("========== Redrew board ==========");
+	// println!("========== Redrew board ==========");
 }

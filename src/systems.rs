@@ -1,21 +1,9 @@
 use crate::{
-	piece::{
-		Piece,
-		PieceColor,
-		PlacedPiece,
-	},
-	ui_piece,
-	Game,
-	GlobalBoard,
-	GlobalEntities,
-	GlobalHover,
-	MaterialHandles,
+	piece::{Piece, PieceColor, PlacedPiece},
+	ui_piece, Game, GlobalBoard, GlobalEntities, GlobalHover, MaterialHandles,
 	PosValue,
 };
-use bevy::{
-	input::mouse::MouseMotion,
-	prelude::*,
-};
+use bevy::{input::mouse::MouseMotion, prelude::*};
 use ui_piece::UiPiece;
 
 pub struct BoardEvent {
@@ -68,7 +56,7 @@ pub fn board_events_system(
 		let ev: &BoardEvent = ev;
 		match ev.event_type {
 			Interaction::Hovered => {
-				println!("Hovered on {:?}", ev.pos);
+				// println!("Hovered on {:?}", ev.pos);
 				ui_piece::set_ui_piece_pos(&mut hover_style, ev.pos);
 				// hover_draw.is_visible = game.board.get_color(ev.pos).is_none();
 				*hover_mat = if game
@@ -87,7 +75,7 @@ pub fn board_events_system(
 				};
 			}
 			Interaction::Clicked => {
-				println!("Clicked on {:?}", ev.pos);
+				// println!("Clicked on {:?}", ev.pos);
 				if let Ok(_) = game.do_move(PlacedPiece {
 					piece: Piece {
 						color: current_turn,
@@ -104,7 +92,7 @@ pub fn board_events_system(
 				};
 			}
 			Interaction::None => {
-				println!("Exited {:?}", ev.pos);
+				// println!("Exited {:?}", ev.pos);
 			}
 		}
 	}
