@@ -1,3 +1,8 @@
+use crate::piece::{
+	PieceAdjacency,
+	PieceColor,
+};
+
 pub struct Adjacency<T>([T; 4]);
 
 impl<T> Adjacency<T> {

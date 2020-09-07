@@ -177,7 +177,36 @@ impl Board {
 
 		let mut future_board = self.clone();
 		future_board.set(m);
+
+		// allow for self-captures if they would immediately capture something.
+
+		let adj: Vec<(u8, u8)> = future_board
+			.adjacents(m.pos)
+			.iter()
+			.filter(|a| {
+				if let Some(p) = a.piece() {
+					p.piece.color != m.piece.color
+				} else {
+					false
+				}
+			})
+			.map(|a| {
+				if let PieceAdjacency::Piece(p) = a {
+					p.pos
+				} else {
+					panic!()
+				}
+			})
+			.collect();
+		for pos in adj {
+			let has_no_liberties = future_board.liberties_shape(pos).len() == 0;
+			if has_no_liberties {
+				future_board.remove_shape(pos);
+			}
+		}
+
 		let future_libs = future_board.liberties_shape(m.pos);
+		// if it would result in a self capture
 		if future_libs.len() == 0 {
 			return Err(BadukError::InvalidMove {
 				source: InvalidMoveError::SelfCapture,
