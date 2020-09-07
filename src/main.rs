@@ -189,7 +189,7 @@ fn main() {
 		.add_default_plugins()
 		.add_event::<BoardEvent>()
 		.init_resource::<MaterialHandles>()
-		.add_resource(Game::new(PieceColor::White))
+		.add_resource(Game::new(0))
 		.add_resource(GlobalEntities::default())
 		.add_resource(BoardEventResource(EventReader::default()))
 		.add_resource(MostRecentButtonResource::default())

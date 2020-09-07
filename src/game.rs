@@ -1,23 +1,65 @@
-use crate::{
-	board::*,
-	error::*,
-	piece::*,
-};
+use crate::{board::*, error::*, piece::*};
 use colored::Colorize;
 use std::fmt;
+
+fn handicap_stones() -> [Vec<(u8, u8)>; 9] {
+	[
+		vec![(3, 3)],
+		vec![(3, 3), (15, 15)],
+		vec![(3, 3), (15, 15), (3, 15)],
+		vec![(3, 3), (15, 15), (3, 15), (15, 3)],
+		vec![(3, 3), (15, 15), (3, 15), (15, 3), (9, 9)],
+		vec![(3, 3), (15, 15), (3, 15), (15, 3), (3, 9), (15, 9)],
+		vec![(3, 3), (15, 15), (3, 15), (15, 3), (9, 9), (3, 9), (15, 9)],
+		vec![
+			(3, 3),
+			(15, 15),
+			(3, 15),
+			(15, 3),
+			(3, 9),
+			(15, 9),
+			(9, 3),
+			(9, 15),
+		],
+		vec![
+			(3, 3),
+			(15, 15),
+			(3, 15),
+			(15, 3),
+			(3, 9),
+			(15, 9),
+			(9, 3),
+			(9, 15),
+			(9, 9),
+		],
+	]
+}
 
 pub struct Game {
 	pub board: Board,
 	pub moves: Vec<PlacedPiece>,
-	pub first: PieceColor,
+	pub handicap: u8,
 }
 
 impl Game {
-	pub fn new(first: PieceColor) -> Self {
+	pub fn new(handicap: u8) -> Self {
+		let mut board = Board::new();
+		if handicap > 0 {
+			let handicap_stones = &handicap_stones()[handicap as usize - 1];
+
+			for pos in handicap_stones {
+				board.set(PlacedPiece {
+					piece: Piece {
+						color: PieceColor::Black,
+					},
+					pos: *pos,
+				});
+			}
+		}
 		Self {
-			board: Board::new(),
+			board,
 			moves: vec![],
-			first,
+			handicap,
 		}
 	}
 
@@ -69,7 +111,7 @@ impl Game {
 	}
 	pub fn current_turn(&self) -> PieceColor {
 		if self.moves.len() == 0 {
-			self.first
+			PieceColor::Black
 		} else {
 			self.moves.last().unwrap().piece.color.opposite()
 		}

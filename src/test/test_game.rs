@@ -1,14 +1,8 @@
-use crate::{
-	adjacency::*,
-	board::*,
-	error::*,
-	game::*,
-	piece::*,
-};
+use crate::{adjacency::*, board::*, error::*, game::*, piece::*};
 
 #[test]
 fn test_game() -> Result<()> {
-	let mut game = Game::new(White);
+	let mut game = Game::new(0);
 	game.do_moves_builder(vec![
 		(White, 3, 3),
 		(Black, 2, 3),
@@ -21,7 +15,7 @@ fn test_game() -> Result<()> {
 
 #[test]
 fn test_history() -> Result<()> {
-	let mut game = Game::new(White);
+	let mut game = Game::new(0);
 	game.do_moves_builder(vec![
 		(White, 0, 0),
 		(Black, 0, 1),
@@ -36,4 +30,14 @@ fn test_history() -> Result<()> {
 	println!("{}", game);
 
 	Ok(())
+}
+
+#[test]
+fn test_handicap() {
+	for i in 0..=9u8 {
+		let game = Game::new(i);
+		println!("handicap: {}", i);
+		println!("{}", game);
+		assert_eq!(i as u16, game.board.num_pieces_all());
+	}
 }
