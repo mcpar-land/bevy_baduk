@@ -1,6 +1,14 @@
-use crate::{adjacency::*, error::*, piece::*, pos::Pos};
+use crate::{
+	adjacency::*,
+	error::*,
+	piece::*,
+	pos::Pos,
+};
 use colored::Colorize;
-use std::{collections::HashSet, fmt};
+use std::{
+	collections::HashSet,
+	fmt,
+};
 
 const DOT_POSITIONS: [(u8, u8); 9] = [
 	(3, 3),
@@ -34,7 +42,7 @@ pub fn pos_in_bounds(pos: (u8, u8)) -> bool {
 	pos.0 <= 18 && pos.1 <= 18
 }
 
-pub type MoveResult<'a> = (PlacedPieceRef<'a>, HashSet<(u8, u8)>);
+pub type MoveResult = (PlacedPiece, HashSet<(u8, u8)>);
 
 #[derive(Clone)]
 pub struct Board {
@@ -236,7 +244,7 @@ impl Board {
 			}
 		}
 
-		Ok((self.get(m.pos).unwrap(), removed_positions))
+		Ok((self.get(m.pos).unwrap().into(), removed_positions))
 	}
 
 	pub fn do_moves(&mut self, moves: Vec<PlacedPiece>) -> Result<()> {

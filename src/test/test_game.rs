@@ -1,4 +1,10 @@
-use crate::{adjacency::*, board::*, error::*, game::*, piece::*};
+use crate::{
+	adjacency::*,
+	board::*,
+	error::*,
+	game::*,
+	piece::*,
+};
 
 #[test]
 fn test_game() -> Result<()> {
@@ -40,4 +46,36 @@ fn test_handicap() {
 		println!("{}", game);
 		assert_eq!(i as u16, game.board.num_pieces_all());
 	}
+}
+
+#[test]
+fn test_move_timeline() -> Result<()> {
+	let mut game = Game::new(0);
+	game.do_moves_builder(vec![(Black, 0, 0), (White, 0, 1), (Black, 1, 1)])?;
+	println!("{}", game);
+	assert_eq!(game.board.num_pieces_all(), 3);
+
+	game.set_position(GamePosition::Past(1))?;
+	println!("{}", game);
+	assert_eq!(game.board.num_pieces_all(), 1);
+
+	game.do_move(PlacedPiece {
+		piece: Piece { color: White },
+		pos: (9, 9),
+	})?;
+	assert_eq!(game.board.num_pieces_all(), 1);
+
+	game.set_position(GamePosition::Current)?;
+	assert_eq!(game.board.num_pieces_all(), 4);
+
+	game.do_moves_builder(vec![(Black, 9, 8), (White, 1, 0)])?;
+	assert_eq!(game.board.num_pieces_all(), 5);
+
+	game.set_position(GamePosition::Past(2))?;
+	assert_eq!(game.board.num_pieces_all(), 2);
+
+	game.set_position(GamePosition::Current)?;
+	assert_eq!(game.board.num_pieces_all(), 5);
+
+	Ok(())
 }

@@ -1,6 +1,11 @@
 use bevy::prelude::*;
 
-use crate::{game::Game, ui_piece::*, GlobalBoard, MaterialHandles};
+use crate::{
+	game::Game,
+	ui_piece::*,
+	GlobalBoard,
+	MaterialHandles,
+};
 
 pub fn redraw_board(
 	commands: &mut Commands,
@@ -12,7 +17,11 @@ pub fn redraw_board(
 	for piece in &mut ui_pieces.iter() {
 		commands.despawn(piece.0);
 	}
-	for piece in game.board.all_pieces() {
+	for piece in game
+		.get_board_at_move(game.current_turn())
+		.unwrap()
+		.all_pieces()
+	{
 		place_ui_piece(
 			commands,
 			board,

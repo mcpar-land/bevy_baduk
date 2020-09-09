@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
+#![feature(clamp)]
 
 mod adjacency;
 mod board;
@@ -32,6 +33,7 @@ pub struct GlobalBoard;
 pub struct GlobalEntities {
 	pub board: Entity,
 	pub hover: Entity,
+	pub text: Entity,
 }
 
 impl std::default::Default for GlobalEntities {
@@ -39,6 +41,7 @@ impl std::default::Default for GlobalEntities {
 		Self {
 			board: Entity::new(),
 			hover: Entity::new(),
+			text: Entity::new(),
 		}
 	}
 }
@@ -113,9 +116,13 @@ impl FromResources for MaterialHandles {
 
 fn setup(
 	mut commands: Commands,
+	asset_server: Res<AssetServer>,
 	mat_handles: Res<MaterialHandles>,
 	global_entities: Res<GlobalEntities>,
 ) {
+	let font: Handle<Font> =
+		asset_server.load("assets/OpenSans-Regular.ttf").unwrap();
+
 	commands
 		.spawn(UiCameraComponents::default())
 		.spawn_as_entity(
@@ -173,7 +180,31 @@ fn setup(
 						.with(PosValue((i as u8, j as u8)));
 				}
 			}
-		});
+		})
+		.spawn_as_entity(
+			global_entities.text,
+			TextComponents {
+				style: Style {
+					size: Size::new(Val::Percent(100.0), Val::Px(20.0)),
+					position_type: PositionType::Absolute,
+					position: Rect {
+						top: Val::Px(10.0),
+						..Default::default()
+					},
+					..Default::default()
+				},
+				text: Text {
+					value: "Hello, world!".to_string(),
+					font,
+					style: TextStyle {
+						font_size: 30.0,
+						color: Color::WHITE,
+					},
+					..Default::default()
+				},
+				..Default::default()
+			},
+		);
 
 	// .spawn_as_entity(global_entities.hover, NodeComponents {});
 }
@@ -183,7 +214,7 @@ fn main() {
 		.add_resource(WindowDescriptor {
 			title: "Go in Bevy!".to_string(),
 			width: 441,
-			height: 441,
+			height: 471,
 			resizable: false,
 			..Default::default()
 		})
@@ -197,5 +228,6 @@ fn main() {
 		.add_startup_system(setup.system())
 		.add_system(mouse_system.system())
 		.add_system(board_events_system.system())
+		.add_system(keyboard_events_system.system())
 		.run();
 }

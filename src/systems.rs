@@ -1,9 +1,21 @@
 use crate::{
-	piece::{Piece, PieceColor, PlacedPiece},
-	ui_piece, Game, GlobalBoard, GlobalEntities, GlobalHover, MaterialHandles,
+	piece::{
+		Piece,
+		PieceColor,
+		PlacedPiece,
+	},
+	ui_piece,
+	Game,
+	GlobalBoard,
+	GlobalEntities,
+	GlobalHover,
+	MaterialHandles,
 	PosValue,
 };
-use bevy::{input::mouse::MouseMotion, prelude::*};
+use bevy::{
+	input::mouse::MouseMotion,
+	prelude::*,
+};
 use ui_piece::UiPiece;
 
 pub struct BoardEvent {
@@ -50,7 +62,7 @@ pub fn board_events_system(
 		.get_mut::<Handle<ColorMaterial>>(hover_entity)
 		.unwrap();
 
-	let current_turn = game.current_turn();
+	let current_turn = game.current_turn_color();
 
 	for ev in state.0.iter(&events) {
 		let ev: &BoardEvent = ev;
@@ -76,19 +88,24 @@ pub fn board_events_system(
 			}
 			Interaction::Clicked => {
 				// println!("Clicked on {:?}", ev.pos);
-				if let Ok(_) = game.do_move(PlacedPiece {
+				match game.do_move(PlacedPiece {
 					piece: Piece {
 						color: current_turn,
 					},
 					pos: ev.pos,
 				}) {
-					crate::ui_board::redraw_board(
-						&mut commands,
-						&materials,
-						board_entity,
-						&game,
-						&mut ui_pieces,
-					);
+					Ok(_) => {
+						crate::ui_board::redraw_board(
+							&mut commands,
+							&materials,
+							board_entity,
+							&game,
+							&mut ui_pieces,
+						);
+					}
+					Err(err) => {
+						println!("{}", err);
+					}
 				};
 			}
 			Interaction::None => {
@@ -98,17 +115,34 @@ pub fn board_events_system(
 	}
 }
 
-fn add_hover_stone(
-	commands: &mut Commands,
-	board_entity: Entity,
-	pos: (u8, u8),
-	color: PieceColor,
+pub fn keyboard_events_system(
+	mut commands: Commands,
+	materials: Res<MaterialHandles>,
+	global_entities: Res<GlobalEntities>,
+	mut game: ResMut<Game>,
+	keyboard_input: Res<Input<KeyCode>>,
+	mut ui_pieces: Query<(Entity, &UiPiece)>,
 ) {
-}
-
-fn remove_hover_stone(
-	commands: &mut Commands,
-	board_entity: Entity,
-	pos: (u8, u8),
-) {
+	let delta = if keyboard_input.just_pressed(KeyCode::Left) {
+		-1
+	} else if keyboard_input.just_pressed(KeyCode::Right) {
+		1
+	} else {
+		0
+	};
+	if delta == 0 {
+		return;
+	}
+	println!("Changed turn by {}", delta);
+	let old_turn = game.current_turn();
+	game.offset_turn(delta);
+	if old_turn != game.current_turn() {
+		crate::ui_board::redraw_board(
+			&mut commands,
+			&materials,
+			global_entities.board,
+			&game,
+			&mut ui_pieces,
+		);
+	}
 }
